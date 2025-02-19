@@ -1,151 +1,242 @@
 package com.example.ukk
 
+
+
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import androidx.core.content.contentValuesOf
+
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
-        private const val DATABASE_NAME = "ToDoList.db"
-        private const val DATABASE_VERSION = 1
-
-
-        private const val TABLE_USERS = "Users"
-        private const val COLUMN_USER_ID = "id"
-        private const val COLUMN_USERNAME = "username"
-        private const val COLUMN_PASSWORD = "password"
-
-
-        private const val TABLE_TASKS = "Tasks"
-        private const val COLUMN_TASK_ID = "id"
-        private const val COLUMN_USER_ID_FK = "user_id"
-        private const val COLUMN_TITLE = "title"
-        private const val COLUMN_DESCRIPTION = "description"
-        private const val COLUMN_CATEGORY = "category"
-        private const val COLUMN_STATUS = "status"
-        private const val COLUMN_CREATED_AT = "created_at"
+        private const val DATABASE_NAME = "Ukk.db"
+        private const val DATABASE_VERSION = 3
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
+        val createUsersTable = """
+            CREATE TABLE users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL,
+                email TEXT,
+                name TEXT,
+                is_active INTEGER DEFAULT 1
+            );
+        """.trimIndent()
+        db?.execSQL(createUsersTable)
 
-        val createUserTable = ("CREATE TABLE $TABLE_USERS (" +
-                "$COLUMN_USER_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$COLUMN_USERNAME TEXT UNIQUE, " +
-                "$COLUMN_PASSWORD TEXT)")
+        val createCategoriesTable = """
+          CREATE TABLE categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category_name TEXT NOT NULL UNIQUE,
+                user_id INTEGER,
+                completed INTEGER DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
 
 
-        val createTaskTable = ("CREATE TABLE $TABLE_TASKS (" +
-                "$COLUMN_TASK_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$COLUMN_USER_ID_FK INTEGER, " +
-                "$COLUMN_TITLE TEXT, " +
-                "$COLUMN_DESCRIPTION TEXT, " +
-                "$COLUMN_CATEGORY TEXT, " +
-                "$COLUMN_STATUS INTEGER DEFAULT 0, " +
-                "$COLUMN_CREATED_AT TEXT, " +
-                "FOREIGN KEY($COLUMN_USER_ID_FK) REFERENCES $TABLE_USERS($COLUMN_USER_ID) ON DELETE CASCADE)")
+        """.trimIndent()
 
-        db?.execSQL(createUserTable)
-        db?.execSQL(createTaskTable)
+        db?.execSQL(createCategoriesTable)
+
+        val createTasksTable = """
+            CREATE TABLE tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                description TEXT,
+                due_date INTEGER,
+                completed INTEGER DEFAULT 0,
+                category_id INTEGER,
+                FOREIGN KEY (category_id) REFERENCES categories(id)
+            );
+        """.trimIndent()
+        db?.execSQL(createTasksTable)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        db?.execSQL("DROP TABLE IF EXISTS $TABLE_TASKS")
-        db?.execSQL("DROP TABLE IF EXISTS $TABLE_USERS")
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        db.execSQL("DROP TABLE IF EXISTS tasks")
+        db.execSQL("DROP TABLE IF EXISTS categories")
+        db.execSQL("DROP TABLE IF EXISTS users")
         onCreate(db)
     }
 
 
-    fun registerUser(username: String, password: String): Boolean {
+    fun addUser(username: String, password: String, email: String?, name: String?): Long {
+        val db = writableDatabase
+
+
+        val cursor = db.rawQuery("SELECT * FROM users WHERE username = ?", arrayOf(username))
+        if (cursor.count > 0) {
+            cursor.close()
+            throw IllegalArgumentException("Username sudah digunakan")
+        }
+        cursor.close()
+
+
+        if (password.length < 8 || !password.matches(Regex(".*[A-Za-z].*")) || !password.matches(Regex(".*[0-9].*"))) {
+            throw IllegalArgumentException("Password harus minimal 8 karakter dan mengandung huruf serta angka")
+        }
+
+        val values = ContentValues().apply {
+            put("username", username)
+            put("password", password)
+            put("email", email)
+            put("name", name)
+        }
+        return db.insert("users", null, values)
+    }
+
+
+
+    fun checkUser(username: String, password: String): Boolean {
+        val db = readableDatabase
+        val query = "SELECT * FROM users WHERE username = ? AND password = ? AND is_active = 1"
+        val cursor = db.rawQuery(query, arrayOf(username, password))
+        val result = cursor.count > 0
+        cursor.close()
+        return result
+    }
+
+
+    fun getUserId(username: String): Int {
+        val db = readableDatabase
+        val query = "SELECT id FROM users WHERE username = ?"
+        val cursor = db.rawQuery(query, arrayOf(username))
+        val userId = if (cursor.moveToFirst()) cursor.getInt(cursor.getColumnIndexOrThrow("id")) else -1
+        cursor.close()
+        return userId
+    }
+
+
+    fun addCategory(categoryName: String): Boolean {
         val db = this.writableDatabase
         val values = ContentValues()
-        values.put(COLUMN_USERNAME, username)
-        values.put(COLUMN_PASSWORD, password)
-        val result = db.insert(TABLE_USERS, null, values)
+        values.put("category_Name", categoryName)
+
+
+
+        val result = db.insert("categories", null, values)
         db.close()
+
         return result != -1L
     }
 
 
-    fun checkUser(username: String, password: String): Boolean {
-        val db = this.readableDatabase
-        val query = ("SELECT * FROM $TABLE_USERS WHERE $COLUMN_USERNAME = ? AND $COLUMN_PASSWORD = ?")
-        val cursor: Cursor = db.rawQuery(query, arrayOf(username, password))
-        val exists = cursor.count > 0
-        cursor.close()
-        db.close()
-        return exists
+
+
+    fun deleteCategory(id: Int): Int {
+        val db = writableDatabase
+        return db.delete("categories", "id = ?", arrayOf(id.toString()))
+    }
+
+    fun getAllCategories(): Cursor {
+        val db = readableDatabase
+        return db.rawQuery("SELECT * FROM categories", null)
     }
 
 
-    fun addTask(userId: Int, title: String, description: String, category: String): Long {
-        val db = this.writableDatabase
+    fun getCategoryById(id: Int): Cursor {
+        val db = readableDatabase
+        return db.rawQuery("SELECT * FROM categories WHERE id = ?", arrayOf(id.toString()))
+    }
+    fun updateCategory(id: Int, name: String) {
+        val db = writableDatabase
         val values = ContentValues()
-        values.put(COLUMN_USER_ID_FK, userId)
-        values.put(COLUMN_TITLE, title)
-        values.put(COLUMN_DESCRIPTION, description)
-        values.put(COLUMN_CATEGORY, category)
-        values.put(COLUMN_STATUS, 0)
-        values.put(COLUMN_CREATED_AT, System.currentTimeMillis().toString())
-        val result = db.insert(TABLE_TASKS, null, values)
+        values.put("name", name)
+        db.update("categories", values, "id = ?", arrayOf(id.toString()))
+        db.close()
+    }
+    fun setCategoryCompleted(id: Int, completed: Boolean) {
+        val db = writableDatabase
+        val values = ContentValues()
+        values.put("completed", if (completed) 1 else 0)
+        db.update("categories", values, "id = ?", arrayOf(id.toString()))
+        db.close()
+    }
+
+
+
+    fun addTask(title: String, description: String?, dueDate: Long?, categoryId: Int): Long {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("title", title)
+            put("description", description)
+            put("due_date", dueDate)
+            put("category_id", categoryId)
+        }
+        val result = db.insert("tasks", null, values)
         db.close()
         return result
     }
 
 
-    fun getTasksByUser(userId: Int): Cursor {
+
+    fun getAllTasks(): Cursor {
+        val db = readableDatabase
+        return db.rawQuery("SELECT * FROM tasks", null)
+    }
+    fun getTaskById(taskId: Int): Cursor {
         val db = this.readableDatabase
-        return db.query(
-            TABLE_TASKS,
-            null,
-            "$COLUMN_USER_ID_FK=?",
-            arrayOf(userId.toString()),
-            null,
-            null,
-            "$COLUMN_CREATED_AT DESC"
-        )
+        return db.rawQuery("SELECT * FROM tasks WHERE id = ?", arrayOf(taskId.toString()))
     }
 
 
-    fun updateTask(taskId: Int, title: String, description: String, category: String, status: Int): Boolean {
-        val db = this.writableDatabase
-        val values = ContentValues()
-        values.put(COLUMN_TITLE, title)
-        values.put(COLUMN_DESCRIPTION, description)
-        values.put(COLUMN_CATEGORY, category)
-        values.put(COLUMN_STATUS, status)
-        val result = db.update(TABLE_TASKS, values, "$COLUMN_TASK_ID=?", arrayOf(taskId.toString()))
-        db.close()
-        return result > 0
+
+    fun deleteTask(taskId: Int): Int {
+        val db = writableDatabase
+        return db.delete("tasks", "id = ?", arrayOf(taskId.toString()))
     }
 
 
-    fun deleteTask(taskId: Int): Boolean {
-        val db = this.writableDatabase
-        val result = db.delete(TABLE_TASKS, "$COLUMN_TASK_ID=?", arrayOf(taskId.toString()))
-        db.close()
-        return result > 0
+    fun updateTask(taskId: Int, title: String, description: String?, dueDate: Long?, categoryId: Int): Int {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("title", title)
+            put("description", description)
+            put("due_date", dueDate)
+            put("category_id", categoryId)
+        }
+        return db.update("tasks", values, "id = ?", arrayOf(taskId.toString()))
     }
 
-    fun getUserId(username: String): Int {
-        val db = this.readableDatabase
-        val cursor = db.query(
-            TABLE_USERS,
-            arrayOf(COLUMN_USER_ID),
-            "$COLUMN_USERNAME=?",
-            arrayOf(username),
-            null, null, null
-        )
 
-        var userId = -1
+
+    fun setTaskCompleted(taskId: Int, isCompleted: Boolean): Int {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("completed", if (isCompleted) 1 else 0)
+        }
+        return db.update("tasks", values, "id = ?", arrayOf(taskId.toString()))
+    }
+
+
+
+    fun getTasksByCategory(categoryId: Int): List<Task> {
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM tasks WHERE category_id = ?", arrayOf(categoryId.toString()))
+        val tasks = mutableListOf<Task>()
+
         if (cursor.moveToFirst()) {
-            userId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_USER_ID))
+            do {
+                val task = Task(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    title = cursor.getString(cursor.getColumnIndexOrThrow("title")),
+                    description = cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                    dueDate = cursor.getLong(cursor.getColumnIndexOrThrow("due_date")),
+                    completed = cursor.getInt(cursor.getColumnIndexOrThrow("completed")) == 1,
+                    categoryId = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"))
+                )
+                tasks.add(task)
+            } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
-        return userId
+        return tasks
     }
+
 
 }

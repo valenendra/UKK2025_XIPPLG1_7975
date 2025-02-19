@@ -10,68 +10,48 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var etUsername: EditText
-    private lateinit var etPassword: EditText
-    private lateinit var btnLogin: Button
-    private lateinit var tvRegister: TextView
     private lateinit var dbHelper: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-        etUsername = findViewById(R.id.etUsername)
-        etPassword = findViewById(R.id.etPassword)
-        btnLogin = findViewById(R.id.btnLogin)
-        tvRegister = findViewById(R.id.tvRegister)
-
-
         dbHelper = DatabaseHelper(this)
 
-
-        tvRegister.setOnClickListener {
-            val intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
-        }
-
-
+        val etUsername = findViewById<EditText>(R.id.etUsernameLogin)
+        val etPassword = findViewById<EditText>(R.id.etPasswordLogin)
+        val btnLogin = findViewById<Button>(R.id.btnLogin)
+        val tvRegister = findViewById<TextView>(R.id.tvRegister)
 
         btnLogin.setOnClickListener {
             val username = etUsername.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
-
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Username dan Password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Username dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val userId = dbHelper.getUserId(username)
-            if (userId != -1) {
-                val intent = Intent(this, TaskActivity::class.java)
+
+            if (password.length < 8) {
+                Toast.makeText(this, "Password harus minimal 8 karakter!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (dbHelper.checkUser(username, password)) {
+                val userId = dbHelper.getUserId(username)
+                val intent = Intent(this, Kategori::class.java)
                 intent.putExtra("USER_ID", userId)
                 startActivity(intent)
                 finish()
+
             } else {
-                Toast.makeText(this, "Login gagal, periksa username dan password", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Username atau password salah!", Toast.LENGTH_SHORT).show()
             }
+        }
 
-
-
-
-            val isValid = dbHelper.checkUser(username, password)
-            if (isValid) {
-                Toast.makeText(this, "Login Berhasil", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
-                finish()
-            } else {
-                Toast.makeText(this, "Username atau Password salah", Toast.LENGTH_SHORT).show()
-            }
-
-
-
+        tvRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
     }
 }

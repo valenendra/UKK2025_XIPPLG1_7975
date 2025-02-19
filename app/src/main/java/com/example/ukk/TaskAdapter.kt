@@ -60,7 +60,7 @@ import androidx.recyclerview.widget.RecyclerView
         }
 
         override fun isEmpty(): Boolean {
-            TODO("Not yet implemented")
+            return true
         }
 
         override fun areAllItemsEnabled(): Boolean {
@@ -70,6 +70,7 @@ import androidx.recyclerview.widget.RecyclerView
         override fun isEnabled(position: Int): Boolean {
             return true
         }
+
 
 
     }
