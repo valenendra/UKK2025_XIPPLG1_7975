@@ -1,5 +1,6 @@
 package com.example.ukk
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -32,7 +33,7 @@ class RegisterActivity : AppCompatActivity() {
             val name = etName.text.toString()
 
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Username dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Username dan Password tidak boleh kosong", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -43,6 +44,12 @@ class RegisterActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+            val sharedPref = getSharedPreferences("login_prefs",Context.MODE_PRIVATE)
+            val editor = sharedPref.edit()
+            editor.putString("username", username)
+            editor.putString("email", email)
+            editor.apply()
+
         }
 
         tvLogin.setOnClickListener {

@@ -10,6 +10,8 @@
     <EditText
         android:id="@+id/etTaskTitle"
         android:layout_width="380dp"
+        android:textColor="@color/black"
+        android:backgroundTint="#00CED1"
         android:layout_height="78dp"
         android:hint="Judul Tugas" />
 
@@ -17,6 +19,7 @@
     <EditText
         android:id="@+id/etTaskDescription"
         android:layout_width="match_parent"
+        android:backgroundTint="#00CED1"
         android:layout_height="wrap_content"
         android:hint="Deskripsi Tugas"
         android:inputType="textMultiLine"
@@ -27,6 +30,7 @@
         android:id="@+id/etDueDate"
         android:layout_width="382dp"
         android:layout_height="95dp"
+        android:backgroundTint="#00CED1"
         android:clickable="true"
         android:focusable="false"
         android:hint="Pilih Tanggal" />

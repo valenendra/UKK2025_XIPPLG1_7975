@@ -21,10 +21,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity"/>
+        <activity android:name=".Kategori"/>
         <activity android:name=".RegisterActivity"/>
-        <activity android:name=".ManageTasksActivity"/>
-        <activity android:name=".CategoryActivity"/>
+        <activity android:name=".TaskActivity"/>
+        <activity android:name=".Profil"/>
+
     </application>
 
 </manifest>

@@ -22,11 +22,13 @@ class Kategori : AppCompatActivity() {
         listViewCategories = findViewById(R.id.listViewCategories)
         listViewCategories.choiceMode = ListView.CHOICE_MODE_SINGLE
 
-
+        val imgProfile = findViewById<ImageView>(R.id.imgProfile)
+        imgProfile.setOnClickListener{
+            val intent = Intent(this, Profil::class.java)
+            startActivity(intent)
+        }
 
         loadCategories()
-
-
 
         findViewById<Button>(R.id.btnAddCategory).setOnClickListener { showCategoryDialog(null) }
         findViewById<Button>(R.id.btnEditCategory).setOnClickListener { editCategory() }
@@ -103,7 +105,7 @@ class Kategori : AppCompatActivity() {
 
     private fun editCategory() {
         if (selectedCategoryId == null) {
-            Toast.makeText(this, "Pilih kategori yang ingin diedit!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Pilih kategori yang mau diedit", Toast.LENGTH_SHORT).show()
             return
         }
         showCategoryDialog(selectedCategoryId)
@@ -111,7 +113,7 @@ class Kategori : AppCompatActivity() {
 
     private fun deleteCategory() {
         if (selectedCategoryId == null) {
-            Toast.makeText(this, "Pilih kategori yang ingin dihapus!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Pilih kategori yang mau dihapus", Toast.LENGTH_SHORT).show()
             return
         }
         dbHelper.deleteCategory(selectedCategoryId!!)
@@ -122,13 +124,14 @@ class Kategori : AppCompatActivity() {
 
     private fun markCategoryComplete() {
         if (selectedCategoryId == null) {
-            Toast.makeText(this, "Pilih kategori yang ingin ditandai selesai!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Pilih kategori yang mau ditandai selesai", Toast.LENGTH_SHORT).show()
             return
         }
         dbHelper.setCategoryCompleted(selectedCategoryId!!, true)
         Toast.makeText(this, "Kategori ditandai selesai", Toast.LENGTH_SHORT).show()
         loadCategories()
     }
+
 
 
 }

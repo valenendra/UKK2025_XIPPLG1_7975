@@ -28,13 +28,13 @@ class MainActivity : AppCompatActivity() {
             val password = etPassword.text.toString().trim()
 
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Username dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Username dan password harus diisi", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
 
             if (password.length < 8) {
-                Toast.makeText(this, "Password harus minimal 8 karakter!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Password minimal 8 karakter!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 finish()
 
             } else {
-                Toast.makeText(this, "Username atau password salah!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Username atau Password salah!", Toast.LENGTH_SHORT).show()
             }
         }
 

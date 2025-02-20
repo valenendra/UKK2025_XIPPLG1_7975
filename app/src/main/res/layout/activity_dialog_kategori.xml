@@ -10,6 +10,7 @@
         android:id="@+id/etCategoryName"
         android:layout_width="378dp"
         android:layout_height="60dp"
+        android:backgroundTint="#00CED1"
         android:hint="Nama Kategori" />
 
 </LinearLayout>

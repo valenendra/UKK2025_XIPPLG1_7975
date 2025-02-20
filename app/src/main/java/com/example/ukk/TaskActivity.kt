@@ -130,13 +130,11 @@ class TaskActivity : AppCompatActivity() {
                 val description = etDesc.text.toString().trim()
 
                 if (title.isEmpty()) {
-                    Toast.makeText(this, "Judul tugas tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Judul tugas gaboleh kosong", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
 
-
                 val dueDate = selectedDueDate ?: 0L
-
 
                 val categoryId = 1
 
@@ -155,7 +153,7 @@ class TaskActivity : AppCompatActivity() {
 
     private fun editTask() {
         if (selectedTaskId == null) {
-            Toast.makeText(this, "Pilih tugas yang ingin diedit!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Pilih tugas yang mau diedit", Toast.LENGTH_SHORT).show()
             return
         }
         showTaskDialog(selectedTaskId)
@@ -170,7 +168,7 @@ class TaskActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this)
             .setTitle("Konfirmasi Hapus")
-            .setMessage("Yakin ingin menghapus tugas ini?")
+            .setMessage("Yakin menghapus tugas ini?")
             .setPositiveButton("Ya") { _, _ ->
                 dbHelper.deleteTask(selectedTaskId!!)
                 selectedTaskId = null
@@ -183,7 +181,7 @@ class TaskActivity : AppCompatActivity() {
 
     private fun markTaskComplete() {
         if (selectedTaskId == null) {
-            Toast.makeText(this, "Pilih tugas yang ingin ditandai selesai!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Pilih tugas yang ingin ditandai selesai", Toast.LENGTH_SHORT).show()
             return
         }
 
